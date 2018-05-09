@@ -1,10 +1,10 @@
-# Trustlogics.io crowdsale and token contracts
+# Trustlogics.io Smart Contracts
 
 ## ICO details
 
-There will be several stages of the token sale, each defined with the amount of tokens on offer and the accompanying bonus. 
+There will be several stages of the token sale, each defined with the amount of tokens on offer and the associated bonus. 
 
-All tokens that are not sold or claimed as bonuses in each stage will be burned.
+All tokens that are not sold in each stage will be burned.
 
 Token sale will have a hardcap and a softcap. 
 
@@ -12,9 +12,9 @@ Token sale will have a hardcap and a softcap.
 
 TLT will be an ERC20 Ethereum token.
 
-## About TrustLogics.io
+## About TrustLogics.io Project
 
-More information about us can be found at our:
+Here are the links:
 
 * [Product website](https://trustlogics.io/)
 * [ICO website](https://trustlogics.io/#token)
