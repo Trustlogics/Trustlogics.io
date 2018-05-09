@@ -12,7 +12,7 @@ Token sale will have a hardcap and a softcap.
 
 TLT will be an ERC20 Ethereum token.
 
-## About Beyond Seen Screen
+## About TrustLogics.io
 
 More information about us can be found at our:
 
