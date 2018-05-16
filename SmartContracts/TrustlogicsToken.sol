@@ -4,162 +4,241 @@ pragma solidity 0.4.23;
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
-library SafeMath {
-    function mul(uint256 a, uint256 b) internal pure returns(uint256) {
-        if (a == 0) {
-            return 0;
-        }
-        uint256 c = a * b;
-        assert(c / a == b);
-        return c;
-    }
 
-    function div(uint256 a, uint256 b) internal pure returns(uint256) {
-        assert(b > 0); // Solidity automatically throws when dividing by 0
-        uint256 c = a / b;
-        assert(a == b * c + a % b); // There is no case in which this doesn't hold
-        return c;
-    }
+library SafeMath 
+{
 
-    function sub(uint256 a, uint256 b) internal pure returns(uint256) {
-        assert(b <= a);
-        return a - b;
-    }
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
 
-    function add(uint256 a, uint256 b) internal pure returns(uint256) {
-        uint256 c = a + b;
-        assert(c >= a);
-        return c;
-    }
+  function mul(uint256 a, uint256 b) internal pure returns(uint256 c) 
+  {
+     if (a == 0) 
+     {
+     	return 0;
+     }
+     c = a * b;
+     assert(c / a == b);
+     return c;
+  }
+
+  /**
+  * @dev Integer division of two numbers, truncating the quotient.
+  */
+
+  function div(uint256 a, uint256 b) internal pure returns(uint256) 
+  {
+     return a / b;
+  }
+
+  /**
+  * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+  */
+
+  function sub(uint256 a, uint256 b) internal pure returns(uint256) 
+  {
+     assert(b <= a);
+     return a - b;
+  }
+
+  /**
+  * @dev Adds two numbers, throws on overflow.
+  */
+
+  function add(uint256 a, uint256 b) internal pure returns(uint256 c) 
+  {
+     c = a + b;
+     assert(c >= a);
+     return c;
+  }
 }
 
 contract ERC20
 {
-    function totalSupply()public view returns(uint total_Supply);
-    function balanceOf(address who)public view returns(uint256);
-    function allowance(address owner, address spender)public view returns(uint);
-    function transferFrom(address from, address to, uint value)public returns(bool ok);
-    function approve(address spender, uint value)public returns(bool ok);
-    function transfer(address to, uint value)public returns(bool ok);
-    event Transfer(address indexed from, address indexed to, uint value);
-    event Approval(address indexed owner, address indexed spender, uint value);
+    function totalSupply() public view returns (uint256);
+    function balanceOf(address _who) public view returns (uint256);
+    function transfer(address _to, uint256 _value) public returns (bool);
+    function allowance(address _owner, address _spender) public view returns (uint256);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool);
+    function approve(address _spender, uint256 _value) public returns (bool);
+
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
 }
 
-
-
+/**
+ * @title Basic token
+ */
 
 contract TrustLogics is ERC20
 {
     using SafeMath for uint256;
-
    
     uint256 constant public TOKEN_DECIMALS = 10 ** 18;
-    uint256 constant public ETH_DECIMALS = 10 ** 18;
-    uint256 public TotalCrowdsaleSupply = 234973535; 
-    uint256 public TotalOwnerSupply = 192251075;     
-   
-
-    // Name of the token
-    string public constant name = "TrustLogics Token";
-
-    // Symbol of token
-    string public constant symbol = "TLT";
-
-    uint8 public constant decimals = 18;
-
-    uint public TotalTokenSupply = 427224610 * TOKEN_DECIMALS;  //
-
-    // Owner of this contract
+    uint256 public totalCrowdsaleSupply    = 234973535; 
+    uint256 public totalOwnerSupply        = 192251075;     
+    string public constant name            = "TrustLogics Token";
+    string public constant symbol          = "TLT";
+    uint256 public totalTokenSupply        = 427224610 * TOKEN_DECIMALS;  
     address public owner;
-    
-    address public TrustLogicsCrowdsale;
+    address public trustLogicsCrowdsale;
     bool public mintedCrowdsale;
-   
+
+    /** mappings **/ 
+    mapping(address => mapping(address => uint256)) allowed;
+    mapping(address => uint256) balances;
  
-    mapping(address => mapping(address => uint)) allowed;
-    mapping(address => uint) balances;
- 
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+
+    modifier onlyOwner() 
+    {
+       require(msg.sender == owner);
+       _;
     }
     
+    /** constructor **/
+
     constructor() public
     {
-       
-        owner = msg.sender;
-        balances[owner] = TotalOwnerSupply.mul(TOKEN_DECIMALS);
-        emit  Transfer(0, owner, balances[owner]);
+       owner = msg.sender;
+       balances[owner] = totalOwnerSupply.mul(TOKEN_DECIMALS);
+       emit Transfer(address(0), owner, balances[owner]);
     }
     
-    function mint(address _TrustlogicsCrowdSale) public onlyOwner{
-        require(!mintedCrowdsale);
-        TrustLogicsCrowdsale = _TrustlogicsCrowdSale;
-        balances[TrustLogicsCrowdsale] = TotalCrowdsaleSupply.mul(TOKEN_DECIMALS);
-        mintedCrowdsale = true;
-        emit Transfer(0,TrustLogicsCrowdsale,  balances[TrustLogicsCrowdsale]);
-    }
-
-    // what is the total supply of the ech tokens
-    function totalSupply() public view returns(uint256 total_Supply) {
-        total_Supply = TotalTokenSupply;
-    }
-
-    // What is the balance of a particular account?
-    function balanceOf(address token_Owner)public constant returns(uint256 balance) {
-        return balances[token_Owner];
-    }
-
-    // Send _value amount of tokens from address _from to address _to
-    // The transferFrom method is used for a withdraw workflow, allowing contracts to send
-    // tokens on your behalf, for example to "deposit" to a contract address and/or to charge
-    // fees in sub-currencies; the command should fail unless the _from account has
-    // deliberately authorized the sender of the message via some mechanism; we propose
-    // these standardized APIs for approval:
-    function transferFrom(address from_address, address to_address, uint256 tokens)public returns(bool success)
+    function mint(address _trustlogicsCrowdSale) public onlyOwner
     {
-        require(to_address != 0x0);
-        require(balances[from_address] >= tokens && allowed[from_address][msg.sender] >= tokens && tokens >= 0);
-        balances[from_address] = (balances[from_address]).sub(tokens);
-        allowed[from_address][msg.sender] = (allowed[from_address][msg.sender]).sub(tokens);
-        balances[to_address] = (balances[to_address]).add(tokens);
-        emit Transfer(from_address, to_address, tokens);
-        return true;
+       require(!mintedCrowdsale);
+
+       trustLogicsCrowdsale = _trustlogicsCrowdSale;
+       balances[trustLogicsCrowdsale] = totalCrowdsaleSupply.mul(TOKEN_DECIMALS);
+       mintedCrowdsale = true;
+       emit Transfer(address(0), trustLogicsCrowdsale, balances[trustLogicsCrowdsale]);
     }
 
-    // Allow _spender to withdraw from your account, multiple times, up to the _value amount.
-    // If this function is called again it overwrites the current allowance with _value.
-    function approve(address spender, uint256 tokens)public returns(bool success)
+    /**
+     * @dev total number of tokens in existence
+     */
+
+    function totalSupply() public view returns(uint256 _totalSupply) 
     {
-        require(spender != 0x0);
-        allowed[msg.sender][spender] = tokens;
-        emit Approval(msg.sender, spender, tokens);
-        return true;
+       _totalSupply = totalTokenSupply;
+       return _totalSupply;
     }
 
-    function allowance(address token_Owner, address spender) public constant returns(uint256 remaining)
+    /**
+     * @dev Gets the balance of the specified address.
+     * @param _owner The address to query the the balance of. 
+     * @return An uint256 representing the amount owned by the passed address.
+     */
+
+    function balanceOf(address _owner) public view returns (uint256 balance) 
     {
-        require(token_Owner != 0x0 && spender != 0x0);
-        return allowed[token_Owner][spender];
+       return balances[_owner];
     }
 
-    // Transfer the balance from owner's account to another account
-    function transfer(address to_address, uint256 tokens)public returns(bool success)
+    /**
+     * @dev Transfer tokens from one address to another
+     * @param _from address The address which you want to send tokens from
+     * @param _to address The address which you want to transfer to
+     * @param _value uint256 the amout of tokens to be transfered
+     */
+
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool)     
     {
-        require(to_address != 0x0);
-        require(balances[msg.sender] >= tokens && tokens >= 0);
-        balances[msg.sender] = (balances[msg.sender]).sub(tokens);
-        balances[to_address] = (balances[to_address]).add(tokens);
-        emit Transfer(msg.sender, to_address, tokens);
-        return true;
+       if (_value == 0) 
+       {
+           emit Transfer(_from, _to, _value);  // Follow the spec to launch the event when value is equal to 0
+           return;
+       }
+
+       require(_to != address(0));
+       require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value >= 0);
+
+       balances[_from] = balances[_from].sub(_value);
+       allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+       balances[_to] = balances[_to].add(_value);
+       emit Transfer(_from, _to, _value);
+       return true;
+    }
+
+    /**
+    * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+    *
+    * Beware that changing an allowance with this method brings the risk that someone may use both the old
+    * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+    * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+    * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+    * @param _spender The address which will spend the funds.
+    * @param _value The amount of tokens to be spent.
+    */
+
+    function approve(address _spender, uint256 _tokens)public returns(bool)
+    {
+       require(_spender != address(0));
+
+       allowed[msg.sender][_spender] = _tokens;
+       emit Approval(msg.sender, _spender, _tokens);
+       return true;
+    }
+
+    /**
+     * @dev Function to check the amount of tokens that an owner allowed to a spender.
+     * @param _owner address The address which owns the funds.
+     * @param _spender address The address which will spend the funds.
+     * @return A uint256 specifing the amount of tokens still avaible for the spender.
+     */
+
+    function allowance(address _owner, address _spender) public view returns(uint256)
+    {
+       require(_owner != address(0) && _spender != address(0));
+
+       return allowed[_owner][_spender];
+    }
+
+    /**
+    * @dev transfer token for a specified address
+    * @param _address The address to transfer to.
+    * @param _tokens The amount to be transferred.
+    */
+
+    function transfer(address _address, uint256 _tokens)public returns(bool)
+    {
+       if (_tokens == 0) 
+       {
+           emit Transfer(msg.sender, _address, _tokens);  // Follow the spec to launch the event when tokens are equal to 0
+           return;
+       }
+
+       require(_address != address(0));
+       require(balances[msg.sender] >= _tokens);
+
+       balances[msg.sender] = (balances[msg.sender]).sub(_tokens);
+       balances[_address] = (balances[_address]).add(_tokens);
+       emit Transfer(msg.sender, _address, _tokens);
+       return true;
     }
     
-     function transferby(address _to,uint256 _amount) external onlyOwner returns(bool success) {
-        require( _to != 0x0); 
-        require( balances[TrustLogicsCrowdsale] >= _amount && _amount > 0);
-        balances[TrustLogicsCrowdsale] = ( balances[TrustLogicsCrowdsale]).sub(_amount);
-        balances[_to] = (balances[_to]).add(_amount);
-        emit Transfer(address(this), _to, _amount);
-        return true;
+    function transferBy(address _to, uint256 _amount) external onlyOwner returns(bool) 
+    {
+       require( _to != address(0)); 
+       require( balances[trustLogicsCrowdsale] >= _amount && _amount > 0);
+
+       balances[trustLogicsCrowdsale] = ( balances[trustLogicsCrowdsale]).sub(_amount);
+       balances[_to] = (balances[_to]).add(_amount);
+       emit Transfer(address(this), _to, _amount);
+       return true;
     }
+	
+    function changeOwnership(address _newOwner)public onlyOwner
+    {
+       require( _newOwner != address(0));
+
+       balances[_newOwner] = (balances[_newOwner]).add(balances[owner]);
+       balances[owner] = 0;
+       owner = _newOwner;
+       emit Transfer(msg.sender, _newOwner, balances[_newOwner]);
+   }
 }
