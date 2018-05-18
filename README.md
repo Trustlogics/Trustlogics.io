@@ -1,6 +1,6 @@
 # Trustlogics.io Smart Contracts
 
-## ICO details
+## ICO details...
 
 There will be several stages of the token sale, each defined with the amount of tokens on offer and the associated bonus. 
 
